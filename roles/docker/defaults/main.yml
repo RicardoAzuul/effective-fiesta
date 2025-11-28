@@ -1,0 +1,11 @@
+---
+# Default variables for the docker role
+
+# Timezone for containers
+docker_timezone: "UTC"
+
+# Pihole web interface password
+docker_pihole_password: "changeme"
+
+# Path to media files for Jellyfin
+docker_jellyfin_media_path: "/media"
