@@ -1,0 +1,112 @@
+---
+# Docker role - Install Docker and run containers
+
+- name: Install required packages for Docker
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+      - python3-pip
+    state: present
+
+- name: Create keyrings directory
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Download Docker GPG key
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/debian/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: '0644'
+
+- name: Add Docker repository
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
+    state: present
+
+- name: Install Docker
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
+    state: present
+    update_cache: true
+
+- name: Start and enable Docker service
+  ansible.builtin.systemd:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Install Docker SDK for Python
+  ansible.builtin.pip:
+    name: docker
+    state: present
+
+- name: Create Docker network for containers
+  ansible.builtin.command:
+    cmd: docker network create docker_network
+  register: docker_network_result
+  changed_when: docker_network_result.rc == 0
+  failed_when: docker_network_result.rc != 0 and 'already exists' not in docker_network_result.stderr
+
+- name: Create Pihole data volumes
+  ansible.builtin.command:
+    cmd: "docker volume create {{ item }}"
+  loop:
+    - pihole_data
+    - dnsmasq_data
+  register: docker_pihole_volume_result
+  changed_when: docker_pihole_volume_result.rc == 0
+
+- name: Run Pihole container
+  ansible.builtin.command:
+    cmd: >
+      docker run -d
+      --name pihole
+      --restart unless-stopped
+      --network docker_network
+      -p 53:53/tcp
+      -p 53:53/udp
+      -p 80:80/tcp
+      -e TZ={{ docker_timezone }}
+      -e WEBPASSWORD={{ docker_pihole_password }}
+      -v pihole_data:/etc/pihole
+      -v dnsmasq_data:/etc/dnsmasq.d
+      pihole/pihole:latest
+  register: docker_pihole_result
+  changed_when: docker_pihole_result.rc == 0
+  failed_when: docker_pihole_result.rc != 0 and 'is already in use' not in docker_pihole_result.stderr
+
+- name: Create Jellyfin data volumes
+  ansible.builtin.command:
+    cmd: "docker volume create {{ item }}"
+  loop:
+    - jellyfin_config
+    - jellyfin_cache
+  register: docker_jellyfin_volume_result
+  changed_when: docker_jellyfin_volume_result.rc == 0
+
+- name: Run Jellyfin container
+  ansible.builtin.command:
+    cmd: >
+      docker run -d
+      --name jellyfin
+      --restart unless-stopped
+      --network docker_network
+      -p 8096:8096/tcp
+      -e TZ={{ docker_timezone }}
+      -v jellyfin_config:/config
+      -v jellyfin_cache:/cache
+      -v {{ docker_jellyfin_media_path }}:/media:ro
+      jellyfin/jellyfin:latest
+  register: docker_jellyfin_result
+  changed_when: docker_jellyfin_result.rc == 0
+  failed_when: docker_jellyfin_result.rc != 0 and 'is already in use' not in docker_jellyfin_result.stderr

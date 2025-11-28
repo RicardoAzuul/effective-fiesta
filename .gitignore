@@ -1,0 +1,19 @@
+# Ansible
+.ansible/
+*.retry
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Inventory files (user-specific)
+inventory
+!inventory.example
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/

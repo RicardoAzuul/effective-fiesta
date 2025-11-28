@@ -1,0 +1,13 @@
+---
+# Ansible playbook for configuring Debian
+# This playbook updates the system, configures SSH, installs Docker,
+# and sets up Pihole and Jellyfin containers
+
+- name: Configure Debian Server
+  hosts: debian
+  become: true
+
+  roles:
+    - common
+    - ssh
+    - docker

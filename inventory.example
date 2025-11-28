@@ -1,0 +1,3 @@
+[debian]
+# Add your Debian hosts here
+# example: 192.168.1.100 ansible_user=your_user

@@ -1,0 +1,23 @@
+---
+# SSH role - Install and configure SSH server
+
+- name: Install openssh-server
+  ansible.builtin.apt:
+    name: openssh-server
+    state: present
+
+- name: Start and enable SSH service
+  ansible.builtin.systemd:
+    name: ssh
+    state: started
+    enabled: true
+
+- name: Configure SSH to allow password authentication
+  ansible.builtin.template:
+    src: sshd_config.j2
+    dest: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: '0644'
+    backup: true
+  notify: Restart SSH
