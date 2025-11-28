@@ -4,8 +4,8 @@
 # Timezone for containers
 docker_timezone: "UTC"
 
-# Pihole web interface password
-docker_pihole_password: "changeme"
+# Pihole web interface password - MUST be set by user
+# docker_pihole_password: "your_secure_password"
 
 # Path to media files for Jellyfin
 docker_jellyfin_media_path: "/media"

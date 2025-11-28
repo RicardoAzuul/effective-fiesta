@@ -31,10 +31,10 @@ cp inventory.example inventory
 
 3. Run the playbook:
 ```bash
-ansible-playbook site.yml
+ansible-playbook site.yml -e "docker_pihole_password=your_secure_password"
 ```
 
-Or with custom variables:
+Or with additional custom variables:
 ```bash
 ansible-playbook site.yml -e "docker_pihole_password=your_secure_password" -e "docker_timezone=America/New_York"
 ```
@@ -44,7 +44,7 @@ ansible-playbook site.yml -e "docker_pihole_password=your_secure_password" -e "d
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `docker_timezone` | `UTC` | Timezone for containers |
-| `docker_pihole_password` | `changeme` | Pihole web interface password |
+| `docker_pihole_password` | (required) | Pihole web interface password |
 | `docker_jellyfin_media_path` | `/media` | Path to media files for Jellyfin |
 
 ## Ports
@@ -57,4 +57,4 @@ The following ports are exposed:
 
 ## Security Note
 
-Remember to change the default `docker_pihole_password` to a secure password before running the playbook in production.
+The `docker_pihole_password` variable must be set when running the playbook. Always use a secure password in production environments.
